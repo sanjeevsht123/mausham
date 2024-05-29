@@ -32,6 +32,30 @@ class WeatherService {
       throw Exception("Error has occured");
     }
   }
+
+  Future<CurrentForecast> get7daysWeather(String city) async {
+    final url = '$baseUrl?key=$apiKey&q=$city&days=7&aqi=no&alerts=no';
+
+    var response = await dio.get(url);
+
+    if (response.statusCode == 200) {
+      return CurrentForecast.fromJson(response.data);
+    } else {
+      throw Exception("Error has occured");
+    }
+  }
+
+  Future<List<dynamic>?> citySuggestion(String query) async {
+    final url = '$searchUrl?key=$apiKey&q=$query';
+
+    var response = await dio.get(url);
+
+    if (response.statusCode == 200) {
+      return response.data;
+    } else {
+      return null;
+    }
+  }
 }
 
 final weatherServiceProvider =
@@ -41,4 +65,10 @@ final weatherProvider =
     FutureProvider.family<CurrentForecast, String>((ref, city) async {
   final weatherService = ref.read(weatherServiceProvider);
   return await weatherService.getCurrentWeather(city);
+});
+
+final searchProvider =
+    FutureProvider.family<List<dynamic>?, String>((ref, query) {
+  final weatherService = ref.read(weatherServiceProvider);
+  return weatherService.citySuggestion(query);
 });

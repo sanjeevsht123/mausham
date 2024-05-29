@@ -1,15 +1,53 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:maushamapp/Screen/dataCard.dart';
 import 'package:maushamapp/main.dart';
 import 'package:maushamapp/services/services.dart';
+
+final cityProvider = StateProvider<String>((ref) => "Bhaktapur");
 
 class Home extends ConsumerWidget {
   const Home({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    String city = "Kathmandu";
+    // String city = "Kathmandu";
+    String city = ref.watch(cityProvider);
+    void _showDialogBox() async {
+      final TextEditingController searchController = TextEditingController();
+      return showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            title: Text("Enter the City"),
+            content: TextField(
+              controller: searchController,
+              decoration: const InputDecoration(hintText: "Enter City Name"),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+                child: Text("Cancel"),
+              ),
+              TextButton(
+                onPressed: () {
+                  ref.watch(cityProvider.notifier).state =
+                      searchController.text;
+                  Navigator.of(context).pop();
+                },
+                child: Text("Ok"),
+              ),
+            ],
+          );
+        },
+      );
+    }
+
     final islight = ref.watch(themeprovider);
     return Scaffold(
       // appBar: AppBar(
@@ -58,12 +96,17 @@ class Home extends ConsumerWidget {
                         const SizedBox(
                           height: 10,
                         ),
-                        Text(
-                          data.location.name,
-                          style: GoogleFonts.lato(
-                              fontSize: 36,
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold),
+                        InkWell(
+                          onTap: () {
+                            _showDialogBox();
+                          },
+                          child: Text(
+                            data.location.name,
+                            style: GoogleFonts.lato(
+                                fontSize: 36,
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold),
+                          ),
                         ),
                         const SizedBox(
                           height: 20,
@@ -74,7 +117,27 @@ class Home extends ConsumerWidget {
                               Text(
                                 "${data.current.tempC}°C",
                                 style: GoogleFonts.lato(
-                                  fontSize: 40,
+                                  fontSize: 30,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
+                              ),
+                              const SizedBox(
+                                height: 10,
+                              ),
+                              Image.network(
+                                "http:${data.current.condition.icon}",
+                                height: 100,
+                                width: 100,
+                                fit: BoxFit.cover,
+                              ),
+                              const SizedBox(
+                                height: 10,
+                              ),
+                              Text(
+                                data.current.condition.text,
+                                style: GoogleFonts.lato(
+                                  fontSize: 30,
                                   fontWeight: FontWeight.bold,
                                   color: Colors.white,
                                 ),
@@ -82,14 +145,78 @@ class Home extends ConsumerWidget {
                             ],
                           ),
                         ),
-                        const SizedBox(
-                          height: 10,
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          children: [
+                            Text(
+                              "Max:${data.forecast.forecastday.first.day.maxtempC}°c",
+                              style: GoogleFonts.lato(
+                                color: Colors.white70,
+                                fontSize: 25,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            Text(
+                              "Min:${data.forecast.forecastday.first.day.mintempC}°c",
+                              style: GoogleFonts.lato(
+                                color: Colors.white70,
+                                fontSize: 25,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            )
+                          ],
                         ),
-                        Image.network(
-                          "http:${data.current.condition.icon}",
-                          height: 100,
-                          width: 100,
-                          fit: BoxFit.fitHeight,
+                        SizedBox(
+                          height: 30,
+                        ),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          children: [
+                            buildWidget(
+                              Icons.wb_sunny,
+                              "Sunrise",
+                              data.forecast.forecastday.first.astro.sunrise,
+                            ),
+                            buildWidget(
+                              Icons.brightness_3,
+                              "SunSet",
+                              data.forecast.forecastday.first.astro.sunset,
+                            )
+                          ],
+                        ),
+                        SizedBox(
+                          height: 20,
+                        ),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          children: [
+                            buildWidget(
+                              Icons.opacity,
+                              "Humadity",
+                              data.current.humidity,
+                            ),
+                            buildWidget(
+                              Icons.wind_power,
+                              "Wind (KPH)",
+                              data.current.windKph,
+                            )
+                          ],
+                        ),
+                        const SizedBox(
+                          height: 25,
+                        ),
+                        Center(
+                          child: ElevatedButton(
+                            onPressed: () {},
+                            style: ElevatedButton.styleFrom(
+                                backgroundColor: Color(0xFF1A2344)),
+                            child: Text(
+                              "7 Days Forecast",
+                              style: GoogleFonts.lato(
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
                         )
                       ],
                     ),
