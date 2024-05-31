@@ -1,13 +1,15 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
+import 'package:flutter_typeahead/flutter_typeahead.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:maushamapp/Screen/7days_forecast.dart';
 import 'package:maushamapp/Screen/dataCard.dart';
 import 'package:maushamapp/main.dart';
 import 'package:maushamapp/services/services.dart';
 
-final cityProvider = StateProvider<String>((ref) => "Bhaktapur");
+final cityProvider = StateProvider<String>((ref) => "Bhaktapur,Nepal");
 
 class Home extends ConsumerWidget {
   const Home({super.key});
@@ -16,36 +18,87 @@ class Home extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     // String city = "Kathmandu";
     String city = ref.watch(cityProvider);
-    void _showDialogBox() async {
-      final TextEditingController searchController = TextEditingController();
-      return showDialog(
-        context: context,
-        builder: (context) {
-          return AlertDialog(
-            title: Text("Enter the City"),
-            content: TextField(
-              controller: searchController,
-              decoration: const InputDecoration(hintText: "Enter City Name"),
-            ),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  Navigator.of(context).pop();
+    void showDialogBox() async {
+      // For Searching the city without any suggestion. If City is not entered correctly it Shows 400 error Bad Request.
+      // final TextEditingController searchController = TextEditingController();
+      // return showDialog(
+      //   context: context,
+      //   builder: (context) {
+      //     return AlertDialog(
+      //       title: Text("Enter the City"),
+      //       content: TextField(
+      //         controller: searchController,
+      //         decoration: const InputDecoration(hintText: "Enter City Name"),
+      //       ),
+      //       actions: [
+      //         TextButton(
+      //           onPressed: () {
+      //             Navigator.of(context).pop();
+      //           },
+      //           child: Text("Cancel"),
+      //         ),
+      //         TextButton(
+      //           onPressed: () {
+      //             ref.watch(cityProvider.notifier).state =
+      //                 searchController.text;
+      //             Navigator.of(context).pop();
+      //           },
+      //           child: Text("Ok"),
+      //         ),
+      //       ],
+      //     );
+      //   },
+      // );
+
+      //For Showing Suggestion While Searching the City . If we don't enter any things for a while after it apper
+      //then it may shows error(400 bad request).
+      showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: const Text("Enter the city Name"),
+              content: TypeAheadField(
+                suggestionsCallback: (search) async {
+                  if (search == Null) {
+                    return null;
+                  } else {
+                    return await ref
+                        .watch(weatherServiceProvider)
+                        .citySuggestion(search);
+                  }
                 },
-                child: Text("Cancel"),
-              ),
-              TextButton(
-                onPressed: () {
-                  ref.watch(cityProvider.notifier).state =
-                      searchController.text;
-                  Navigator.of(context).pop();
+                builder: (context, controller, focusNode) {
+                  return TextField(
+                    controller: controller,
+                    focusNode: focusNode,
+                    autofocus: true,
+                    decoration: const InputDecoration(
+                        border: OutlineInputBorder(), labelText: "City"),
+                  );
                 },
-                child: Text("Ok"),
+                itemBuilder: (context, suggestion) {
+                  return ListTile(
+                    title: Text(suggestion['name']),
+                  );
+                },
+                onSelected: (city) {
+                  ref.watch(cityProvider.notifier).state = city.toString();
+                },
               ),
-            ],
-          );
-        },
-      );
+              actions: [
+                TextButton(
+                    onPressed: () {
+                      Navigator.pop(context);
+                    },
+                    child: const Text("Cancel")),
+                TextButton(
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
+                    child: const Text("Ok"))
+              ],
+            );
+          });
     }
 
     final islight = ref.watch(themeprovider);
@@ -57,7 +110,7 @@ class Home extends ConsumerWidget {
       body: SafeArea(
         child: RefreshIndicator(
           onRefresh: () async {
-            await ref.refresh(weatherProvider(city));
+            ref.refresh(weatherProvider(city));
           },
           child: Consumer(builder: (context, ref, child) {
             final weatherdata = ref.watch(weatherProvider(city));
@@ -80,7 +133,7 @@ class Home extends ConsumerWidget {
                             Colors.black.withOpacity(0.3),
                             BlendMode.darken,
                           )),
-                      color: Color(0xFFFFFFFF),
+                      color: const Color(0xFFFFFFFF),
                       borderRadius: BorderRadius.circular(10),
                       // boxShadow: [
                       //   BoxShadow(
@@ -98,7 +151,7 @@ class Home extends ConsumerWidget {
                         ),
                         InkWell(
                           onTap: () {
-                            _showDialogBox();
+                            showDialogBox();
                           },
                           child: Text(
                             data.location.name,
@@ -166,7 +219,7 @@ class Home extends ConsumerWidget {
                             )
                           ],
                         ),
-                        SizedBox(
+                        const SizedBox(
                           height: 30,
                         ),
                         Row(
@@ -184,7 +237,7 @@ class Home extends ConsumerWidget {
                             )
                           ],
                         ),
-                        SizedBox(
+                        const SizedBox(
                           height: 20,
                         ),
                         Row(
@@ -207,9 +260,12 @@ class Home extends ConsumerWidget {
                         ),
                         Center(
                           child: ElevatedButton(
-                            onPressed: () {},
+                            onPressed: () {
+                              Navigator.of(context).push(MaterialPageRoute(
+                                  builder: (_) => DetailsForecast(city)));
+                            },
                             style: ElevatedButton.styleFrom(
-                                backgroundColor: Color(0xFF1A2344)),
+                                backgroundColor: const Color(0xFF1A2344)),
                             child: Text(
                               "7 Days Forecast",
                               style: GoogleFonts.lato(
@@ -244,7 +300,7 @@ class Home extends ConsumerWidget {
               ? ref.read(themeprovider.notifier).state = false
               : ref.read(themeprovider.notifier).state = true;
         },
-        child: Icon(Icons.light_mode),
+        child: const Icon(Icons.light_mode),
       ),
     );
   }

@@ -67,8 +67,14 @@ final weatherProvider =
   return await weatherService.getCurrentWeather(city);
 });
 
-final searchProvider =
-    FutureProvider.family<List<dynamic>?, String>((ref, query) {
+final sevendaysWeatherProvider =
+    FutureProvider.family<CurrentForecast, String>((ref, city) async {
   final weatherService = ref.read(weatherServiceProvider);
-  return weatherService.citySuggestion(query);
+  return await weatherService.get7daysWeather(city);
 });
+
+// final searchProvider =
+//     FutureProvider.family<List<dynamic>?, String>((ref, query) {
+//   final weatherService = ref.read(weatherServiceProvider);
+//   return weatherService.citySuggestion(query);
+// });

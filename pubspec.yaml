@@ -38,6 +38,7 @@ dependencies:
   dio: ^5.4.2+1
   hooks_riverpod: ^2.5.1
   google_fonts: ^6.2.1
+  flutter_typeahead: ^5.2.0
 
 dev_dependencies:
   flutter_test:

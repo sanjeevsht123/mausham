@@ -16,8 +16,8 @@ Widget buildWidget(IconData icon, String label, dynamic value) {
                 begin: AlignmentDirectional.topStart,
                 end: AlignmentDirectional.bottomEnd,
                 colors: [
-              Color(0xFF1A2344).withOpacity(0.5),
-              Color(0xFF1A2344).withOpacity(0.2),
+              const Color(0xFF1A2344).withOpacity(0.5),
+              const Color(0xFF1A2344).withOpacity(0.2),
             ])),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -26,7 +26,7 @@ Widget buildWidget(IconData icon, String label, dynamic value) {
               icon,
               color: Colors.white,
             ),
-            SizedBox(
+            const SizedBox(
               height: 10,
             ),
             Text(
